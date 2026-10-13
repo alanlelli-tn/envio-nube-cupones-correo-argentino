@@ -16,9 +16,6 @@ const clickRate = D.click.yesConv / D.click.yesBase;
 const noClickRate = D.click.noConv / D.click.noBase;
 const noClickShare = D.click.noConv / D.conv;
 const dismissShare = D.endReasons.dismissed / D.views;
-const missingShare = D.endReasons.missing / D.views;
-const missingCvr = D.missing.conv / D.missing.base;
-const visibleCvr = D.missing.visConv / D.missing.visBase;
 const coh1 = D.cohort.w1.c / D.cohort.w1.n;
 const coh2 = D.cohort.w2.c / D.cohort.w2.n;
 const postShare = D.postFlowAct / D.conv;
@@ -72,29 +69,6 @@ function Funnel() {
   );
 }
 
-function TooltipMock() {
-  return h(
-    'figure',
-    { className: 'mock', 'aria-label': 'Así ve el merchant el tooltip' },
-    h(
-      'div',
-      { className: 'mock__menu', 'aria-hidden': 'true' },
-      ['Inicio', 'Pedidos', 'Productos', 'Envío Nube', 'Marketing'].map((t) =>
-        h('span', { key: t, className: 'mock__item' + (t === 'Envío Nube' ? ' mock__item--on' : '') }, t)
-      )
-    ),
-    h(
-      'div',
-      { className: 'mock__tip' },
-      h('h4', null, tooltip.title),
-      h('p', null, tooltip.body1 + ' ', h('strong', null, tooltip.bold), '.'),
-      h('p', null, tooltip.body2),
-      h('span', { className: 'btn' }, tooltip.cta)
-    ),
-    h('figcaption', null, 'Tooltip “' + tooltip.title + '”')
-  );
-}
-
 function Bars(props) {
   const max = Math.max(...props.items.map((x) => x.v), 1);
   return h(
@@ -131,12 +105,6 @@ export default function Page() {
       body:
         pct(clickRate) + ' de quienes hicieron clic en Activar activó, contra ' + pct(noClickRate) + ' de quienes no. Aun así, ' + pct(noClickShare, 0) +
         ' de las activaciones llegó sin clic y el CTR es de ' + pct(ctr) + ': ' + pct(dismissShare, 0) + ' de las views se cerró con la X.',
-    },
-    {
-      title: pct(missingShare, 0) + ' de las views no encontró dónde anclarse',
-      body:
-        fmt(D.endReasons.missing) + ' sesiones terminaron en “Missing tooltip target” (el tooltip se ancla al ítem Envío Nube del menú) y ' + fmt(D.missing.stores) +
-        ' merchants solo tuvieron sesiones así. Su CVR fue ' + pct(missingCvr) + ', contra ' + pct(visibleCvr) + ' del resto. Es una diferencia observada, no causal; vale revisar el selector o usar un modal.',
     },
     {
       title: 'La activación sigue después de despublicar el flow',
@@ -201,20 +169,15 @@ export default function Page() {
       ),
       h(
         Section,
-        { id: 'comunicacion', title: 'La comunicación', lead: 'Campaña “' + meta.flowName + '”, en Userflow.' },
+        { id: 'comunicacion', title: 'La comunicación' },
         h('div', { className: 'actions' }, h(CommunicationModal, preview)),
         h(
-          'div',
-          { className: 'split' },
-          h(TooltipMock),
-          h(
-            'ul',
-            { className: 'facts' },
-            h('li', null, h('strong', null, 'Dónde aparece. '), tooltip.where),
-            h('li', null, h('strong', null, 'Audiencia. '), tooltip.audience),
-            h('li', null, h('strong', null, 'Ventana. '), meta.activation + ' al ' + meta.end + '. El cupón de Correo Argentino rige hasta el 18 de octubre.'),
-            h('li', null, h('strong', null, 'Acción. '), 'El botón Activar Envío Nube lleva a la configuración de Envío Nube en el admin.')
-          )
+          'ul',
+          { className: 'facts', style: { marginTop: '24px' } },
+          h('li', null, h('strong', null, 'Dónde aparece. '), tooltip.where),
+          h('li', null, h('strong', null, 'Audiencia. '), tooltip.audience),
+          h('li', null, h('strong', null, 'Ventana. '), meta.activation + ' al ' + meta.end + '. El cupón de Correo Argentino rige hasta el 18 de octubre.'),
+          h('li', null, h('strong', null, 'Acción. '), 'El botón Activar Envío Nube lleva a la configuración de Envío Nube en el admin.')
         )
       ),
       h(
