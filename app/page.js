@@ -1,5 +1,5 @@
 import React from 'react';
-import { data as D, meta, tooltip, preview } from './content';
+import { data as D, meta, tooltip, preview, ventas as V } from './content';
 import CommunicationModal from './CommunicationModal';
 
 // Helper de render sin JSX: mantiene este archivo idéntico en Next.js y en la vista previa.
@@ -21,6 +21,14 @@ const coh2 = D.cohort.w2.c / D.cohort.w2.n;
 const postShare = D.postFlowAct / D.conv;
 const previoShare = D.previo / D.impactados;
 const maxDays = Math.max(...D.days.map((x) => x.n));
+const vShare = V.ventasBase / D.base;
+const vCvr = V.ventasConv / V.ventasBase;
+const sinVCvr = V.sinVentasConv / V.sinVentasBase;
+const vClickRate = V.ventasClicConv / V.ventasClicBase;
+const vNoClickRate = V.ventasNoClicConv / V.ventasNoClicBase;
+const vConvShare = V.ventasConv / D.conv;
+const vTramoSmall = V.tramos[0].c / V.tramos[0].n;
+const vTramoBig = V.tramos[V.tramos.length - 1].c / V.tramos[V.tramos.length - 1].n;
 
 // ---- Piezas ----
 function Section(props) {
@@ -111,6 +119,13 @@ export default function Page() {
       body:
         fmt(D.postFlowAct) + ' activaciones (' + pct(postShare, 0) + ') ocurrieron del 10 al 13 de octubre, sin in-app y con el cupón vigente hasta el 18/10. Los que vieron el tooltip del 28/9 al 4/10 convirtieron ' +
         pct(coh1) + ', los del 5 al 9/10, ' + pct(coh2) + ': tuvieron menos tiempo. Conviene volver a medir.',
+    },
+    {
+      title: pct(vCvr) + ' de los merchants con ventas activó Envío Nube',
+      body:
+        'Sobre los ' + fmt(V.ventasBase) + ' que procesaron pedidos en los últimos 30 días, activaron ' + fmt(V.ventasConv) + '. Los que hicieron clic convirtieron ' + pct(vClickRate) +
+        ' y los que no, ' + pct(vNoClickRate) + '. Activan sobre todo los vendedores chicos: con 1 a 5 pedidos, ' + pct(vTramoSmall) + '; con más de 100, ' + pct(vTramoBig) +
+        ' (puede que estos últimos ya tengan resuelta su logística, no lo verificamos).',
     },
     {
       title: pct(previoShare) + ' de los impactados ya usaba o tenía configurado Envío Nube',
@@ -228,6 +243,60 @@ export default function Page() {
       h(
         Section,
         {
+          id: 'ventas',
+          title: 'Desagregado: merchants con ventas',
+          lead:
+            fmt(V.ventasBase) + ' de los ' + fmt(D.base) + ' merchants sin Envío Nube previo (' + pct(vShare) + ') procesaron al menos un pedido pago en los 30 días hasta el ' + meta.cut +
+            '. Es la lectura más justa del CVR: una activación solo se detecta en merchants con pedidos, así que quienes no venden no pueden convertir en la medición.',
+        },
+        h(
+          'div',
+          { className: 'kpis kpis--4' },
+          h(Kpi, { label: 'Merchants con ventas', value: fmt(V.ventasBase), sub: pct(vShare) + ' de la base sin Envío Nube previo' }),
+          h(Kpi, { label: 'Conversiones', value: fmt(V.ventasConv), sub: pct(vConvShare) + ' de las ' + fmt(D.conv) + ' conversiones', tone: 'accent' }),
+          h(Kpi, { label: 'CVR sobre merchants con ventas', value: pct(vCvr), sub: fmt(V.ventasConv) + ' / ' + fmt(V.ventasBase), tone: 'accent' }),
+          h(Kpi, { label: 'Paquetes despachados', value: fmt(V.ventasPaq), sub: fmt(V.ventasDisp) + ' merchants con ventas que activaron ya despacharon', tone: 'accent' })
+        ),
+        h('h3', { className: 'sub' }, 'Conversión según ventas'),
+        h(
+          'table',
+          { className: 'table' },
+          h('thead', null, h('tr', null, h('th', null, ''), h('th', null, 'Merchants de la base'), h('th', null, 'Activaron'), h('th', null, 'CVR'))),
+          h(
+            'tbody',
+            null,
+            h('tr', null, h('th', null, 'Con ventas en los últimos 30 días'), h('td', null, fmt(V.ventasBase)), h('td', null, fmt(V.ventasConv)), h('td', { className: 'strong' }, pct(vCvr))),
+            h('tr', null, h('th', null, 'Sin ventas'), h('td', null, fmt(V.sinVentasBase)), h('td', null, fmt(V.sinVentasConv)), h('td', { className: 'strong' }, pct(sinVCvr, 2)))
+          )
+        ),
+        h('p', { className: 'note' }, fmt(V.ventasSinActivar) + ' merchants vendieron en los últimos 30 días y todavía no activaron Envío Nube: es la audiencia con más potencial para una próxima comunicación.'),
+        h('h3', { className: 'sub' }, 'Conversión según interacción, solo merchants con ventas'),
+        h(
+          'table',
+          { className: 'table' },
+          h('thead', null, h('tr', null, h('th', null, ''), h('th', null, 'Merchants con ventas'), h('th', null, 'Activaron'), h('th', null, 'CVR'))),
+          h(
+            'tbody',
+            null,
+            h('tr', null, h('th', null, 'Hicieron clic en Activar'), h('td', null, fmt(V.ventasClicBase)), h('td', null, fmt(V.ventasClicConv)), h('td', { className: 'strong' }, pct(vClickRate))),
+            h('tr', null, h('th', null, 'No hicieron clic'), h('td', null, fmt(V.ventasNoClicBase)), h('td', null, fmt(V.ventasNoClicConv)), h('td', { className: 'strong' }, pct(vNoClickRate)))
+          )
+        ),
+        h('h3', { className: 'sub' }, 'Conversión según volumen de pedidos (últimos 30 días)'),
+        h(
+          'table',
+          { className: 'table' },
+          h('thead', null, h('tr', null, h('th', null, 'Pedidos'), h('th', null, 'Merchants'), h('th', null, 'Activaron'), h('th', null, 'CVR'))),
+          h(
+            'tbody',
+            null,
+            V.tramos.map((t) => h('tr', { key: t.label }, h('th', null, t.label), h('td', null, fmt(t.n)), h('td', null, fmt(t.c)), h('td', { className: 'strong' }, pct(t.c / t.n))))
+          )
+        )
+      ),
+      h(
+        Section,
+        {
           id: 'paquetes',
           title: 'Paquetes despachados por Envío Nube',
           lead: 'Paquetes con fecha de posteo desde la activación de cada merchant que convirtió, hasta el ' + meta.cut + '.',
@@ -258,6 +327,7 @@ export default function Page() {
           h('li', null, h('strong', null, 'Envío Nube previo. '), 'Merchant con Envío Nube habilitado en su configuración, un pedido pagado donde el comprador eligió Envío Nube, o una etiqueta de Envío Nube, anterior al día de su primera view. Base elegible = impactados menos previos.'),
           h('li', null, h('strong', null, 'Conversión. '), 'Merchant de la base que configuró Envío Nube o tuvo su primera señal de uso (pedido con Envío Nube elegido o primera etiqueta) en la fecha de su primera view o después. CVR = conversiones / merchants sin Envío Nube previo. No hay atribución causal: incluye activaciones que podrían haber ocurrido igual.'),
           h('li', null, h('strong', null, 'Paquetes. '), 'Envíos de Envío Nube (con orden de entrega) con fecha de posteo desde el día de activación del merchant, de los merchants convertidos. Incluye envíos asociados a pedidos y envíos avulsos.'),
+          h('li', null, h('strong', null, 'Merchants con ventas. '), 'Merchants de la base con al menos un pedido pago (GMV oficial de Argentina, solo on-platform) en los 30 días hasta el ' + meta.cut + '. Una activación solo se detecta en merchants con pedidos (se infiere de pedidos con Envío Nube habilitado o elegido, o de etiquetas), por eso este recorte es el más comparable para el CVR.'),
           h('li', null, h('strong', null, 'Límites. '), 'La fecha de configuración no está disponible: se infiere de la primera orden con Envío Nube habilitado, por lo que un merchant que configuró y aún no tuvo pedidos no se detecta. Las fechas son diarias (UTC): una activación el mismo día de la primera view cuenta como conversión (' + fmt(D.sameDay) + ' casos). Userflow cuenta como view las ' + fmt(D.endReasons.missing) + ' sesiones sin ancla de tooltip, y ' + fmt(D.multiSession) + ' merchants tuvieron más de una sesión.')
         )
       )
