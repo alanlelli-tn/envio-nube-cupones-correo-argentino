@@ -212,3 +212,43 @@ export const preview = {
   src: '/previews/tooltip-cupones-ca.png',
   alt: 'Tooltip “Envíos más baratos para vender más” anclado al ítem Envío Nube del menú, con el botón Activar Envío Nube.',
 };
+
+// Desagregado sobre merchants sin Envío Nube previo que procesaron pedidos pagos en los últimos 30 días (al 13 oct 2026).
+export const ventas = {
+  "ventasBase": 6657,
+  "ventasConv": 469,
+  "sinVentasBase": 28280,
+  "sinVentasConv": 11,
+  "ventasClicBase": 200,
+  "ventasClicConv": 73,
+  "ventasNoClicBase": 6457,
+  "ventasNoClicConv": 396,
+  "ventasPaq": 449,
+  "ventasDisp": 113,
+  "ventasSinActivar": 6188,
+  "ventasConvUso": 252,
+  "ventasConvCfg": 217,
+  "ordenesTotal": 358586,
+  "tramos": [
+    {
+      "label": "1 a 5",
+      "n": 3589,
+      "c": 410
+    },
+    {
+      "label": "6 a 20",
+      "n": 1365,
+      "c": 36
+    },
+    {
+      "label": "21 a 100",
+      "n": 1102,
+      "c": 21
+    },
+    {
+      "label": "Más de 100",
+      "n": 601,
+      "c": 2
+    }
+  ]
+};
